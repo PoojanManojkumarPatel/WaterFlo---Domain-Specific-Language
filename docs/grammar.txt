@@ -1,0 +1,27 @@
+program        -> declaration* EOF ;
+
+declaration    -> riverDecl
+               | damDecl
+               | letDecl
+               | drainStmt
+               | outputStmt ;
+
+riverDecl → "river" IDENT ( "=" NUMBER )? ";" ;
+damDecl        -> "dam" IDENT ";" ;
+letDecl        -> "let" IDENT "=" expression ";" ;
+drainStmt      -> IDENT "->" IDENT ";" ;
+outputStmt     -> "output" IDENT ";" ;
+
+# Expressions: rivers, flows, rainfall
+expression     -> addition ;
+addition       -> primary ( "+" primary )* ;
+primary        -> IDENT
+               | NUMBER
+               | "(" expression ")"
+               | rainLit ;
+
+rainLit        -> "rain" "(" NUMBER "mm" ")" ;
+
+# Comments (ignored by parser)
+comment        -> "//" <any chars until end of line>
+               | "/*" <any chars until "*/">

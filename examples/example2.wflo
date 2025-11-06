@@ -1,0 +1,8 @@
+// Two rivers combine into one system
+river a;
+river b;
+
+// combine a + b into c
+let c = a + b;
+
+output c;

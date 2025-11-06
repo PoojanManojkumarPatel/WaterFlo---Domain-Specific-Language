@@ -1,0 +1,3 @@
+// Single river with direct output
+let total = rain(25mm) + 5;
+output total;

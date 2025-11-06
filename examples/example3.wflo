@@ -1,0 +1,28 @@
+// Canberra-style river system with dams and rainfall input
+
+river googong;
+river jerrabombarra;
+river upper_molongolo;
+
+dam dam1;
+dam dam2;
+
+river queanbeyan;
+river lower_molongolo;
+
+// topology connections
+googong -> dam1;
+dam1 -> queanbeyan;
+
+// central molongolo = combination
+let central = queanbeyan + upper_molongolo + jerrabombarra;
+
+// drain central into dam2, then out
+central -> dam2;
+dam2 -> lower_molongolo;
+
+// rainfall contribution (parsed but not evaluated)
+let rain_today = rain(25mm);
+
+// final output of system
+output lower_molongolo;
