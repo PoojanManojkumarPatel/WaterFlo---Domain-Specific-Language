@@ -43,11 +43,17 @@ class Parser {
     return new Stmt.River(name, length);
   }
 
-  private Stmt damDecl() {
-    Token name = consume(TokenType.IDENTIFIER, "Expect dam name.");
-    consume(TokenType.SEMICOLON, "Expect ';' after dam declaration.");
-    return new Stmt.Dam(name);
-  }
+    private Stmt damDecl() {
+      Token name = consume(TokenType.IDENTIFIER, "Expect dam name.");
+      Expr factor = null;
+      if (match(TokenType.EQUAL)) {
+        Token number = consume(TokenType.NUMBER, "Expect number after '='.");
+        factor = new Expr.Literal(number.literal);
+      }
+      consume(TokenType.SEMICOLON, "Expect ';' after dam declaration.");
+      return new Stmt.Dam(name, factor);
+    }
+
 
   private Stmt letDecl() {
     Token name = consume(TokenType.IDENTIFIER, "Expect variable name.");

@@ -1,8 +1,10 @@
-// Two rivers combine into one system
-river a;
-river b;
+let a = 10;
+let b = 20;
+dam d1 = 0.5;
+dam d2 = 0.9;
 
-// combine a + b into c
-let c = a + b;
+a -> d1;
+b -> d1;
+d1 -> d2;
 
-output c;
+output d2;

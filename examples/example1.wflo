@@ -1,3 +1,5 @@
-// Single river with direct output
-let total = rain(25mm) + 5;
-output total;
+let rain_today = rain(50mm);
+dam d1 = 0.8;
+
+rain_today -> d1;
+output d1;

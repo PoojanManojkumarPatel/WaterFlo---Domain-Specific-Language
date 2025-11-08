@@ -1,7 +1,5 @@
 package com.waterflo;
 
-import java.util.List;
-
 abstract class Stmt {
   interface Visitor<R> {
     R visitRiverStmt(River stmt);
@@ -27,14 +25,14 @@ abstract class Stmt {
 
   static class Dam extends Stmt {
     final Token name;
+    final Expr factor; // optional: pass-through factor (e.g., 0.8)
 
-    Dam(Token name) {
+    Dam(Token name, Expr factor) {
       this.name = name;
+      this.factor = factor;
     }
 
-    <R> R accept(Visitor<R> visitor) {
-      return visitor.visitDamStmt(this);
-    }
+    <R> R accept(Visitor<R> visitor) { return visitor.visitDamStmt(this); }
   }
 
   static class Let extends Stmt {

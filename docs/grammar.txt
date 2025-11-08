@@ -7,7 +7,7 @@ declaration    -> riverDecl
                | outputStmt ;
 
 riverDecl → "river" IDENT ( "=" NUMBER )? ";" ;
-damDecl        -> "dam" IDENT ";" ;
+damDecl  → "dam" IDENT ( "=" NUMBER )? ";" ;
 letDecl        -> "let" IDENT "=" expression ";" ;
 drainStmt      -> IDENT "->" IDENT ";" ;
 outputStmt     -> "output" IDENT ";" ;
