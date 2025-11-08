@@ -5,13 +5,13 @@ enum TokenType {
   PLUS, EQUAL, SEMICOLON, LEFT_PAREN, RIGHT_PAREN,
 
   // Multi-character
-  ARROW, // ->
+  ARROW, COMMA, // ->
 
   // Literals
   IDENTIFIER, NUMBER,
 
   // Keywords
-  RIVER, DAM, LET, OUTPUT, RAIN, MM,
+  RIVER, DAM, LET, OUTPUT, RAIN, MM, LEVEL,
 
   // Other
   EOF

@@ -7,7 +7,19 @@ abstract class Stmt {
     R visitLetStmt(Let stmt);
     R visitDrainStmt(Drain stmt);
     R visitOutputStmt(Output stmt);
+    R visitLevelStmt(Level stmt);
+
   }
+
+    static class DamAlg {
+    final String kind;                 // "number" | "reduce" | "cap" | "boost" | "threshold"
+    final java.util.List<Expr> params; // expressions for parameters
+    DamAlg(String kind, java.util.List<Expr> params) {
+      this.kind = kind;
+      this.params = params;
+    }
+  }
+
 
   static class River extends Stmt {
     final Token name;
@@ -25,15 +37,29 @@ abstract class Stmt {
 
   static class Dam extends Stmt {
     final Token name;
-    final Expr factor; // optional: pass-through factor (e.g., 0.8)
+    final DamAlg alg; // nullable (means default reduce(1.0))
 
-    Dam(Token name, Expr factor) {
+    Dam(Token name, DamAlg alg) {
       this.name = name;
-      this.factor = factor;
+      this.alg = alg;
     }
 
     <R> R accept(Visitor<R> visitor) { return visitor.visitDamStmt(this); }
   }
+
+  static class Level extends Stmt {
+    final Token name;
+    final Expr value;
+
+    Level(Token name, Expr value) {
+      this.name = name;
+      this.value = value;
+    }
+
+    <R> R accept(Visitor<R> visitor) { return visitor.visitLevelStmt(this); }
+  }
+
+
 
   static class Let extends Stmt {
     final Token name;
@@ -77,3 +103,4 @@ abstract class Stmt {
 
   abstract <R> R accept(Visitor<R> visitor);
 }
+

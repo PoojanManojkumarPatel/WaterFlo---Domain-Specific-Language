@@ -27,6 +27,7 @@ class Parser {
     if (match(TokenType.DAM)) return damDecl();
     if (match(TokenType.LET)) return letDecl();
     if (match(TokenType.OUTPUT)) return outputStmt();
+    if (match(TokenType.LEVEL)) return levelStmt();
     if (check(TokenType.IDENTIFIER) && checkNext(TokenType.ARROW)) return drainStmt();
 
     throw error(peek(), "Unexpected statement.");
@@ -43,16 +44,45 @@ class Parser {
     return new Stmt.River(name, length);
   }
 
-    private Stmt damDecl() {
-      Token name = consume(TokenType.IDENTIFIER, "Expect dam name.");
-      Expr factor = null;
-      if (match(TokenType.EQUAL)) {
-        Token number = consume(TokenType.NUMBER, "Expect number after '='.");
-        factor = new Expr.Literal(number.literal);
-      }
-      consume(TokenType.SEMICOLON, "Expect ';' after dam declaration.");
-      return new Stmt.Dam(name, factor);
+  private Stmt damDecl() {
+    Token name = consume(TokenType.IDENTIFIER, "Expect dam name.");
+    Stmt.DamAlg alg = null;
+    if (match(TokenType.EQUAL)) {
+      alg = damAlg(); // parse NUMBER or IDENT(args)
     }
+    consume(TokenType.SEMICOLON, "Expect ';' after dam declaration.");
+    return new Stmt.Dam(name, alg);
+  }
+
+
+  private Stmt.DamAlg damAlg() {
+    // NUMBER → implicit reduce(NUMBER)
+    if (check(TokenType.NUMBER)) {
+      Token num = advance();
+      java.util.List<Expr> ps = new java.util.ArrayList<>();
+      ps.add(new Expr.Literal(num.literal));
+      return new Stmt.DamAlg("number", ps);
+    }
+    // IDENT "(" argList? ")"
+    Token kind = consume(TokenType.IDENTIFIER, "Expect algorithm name.");
+    consume(TokenType.LEFT_PAREN, "Expect '(' after algorithm name.");
+    java.util.List<Expr> params = new java.util.ArrayList<>();
+    if (!check(TokenType.RIGHT_PAREN)) {
+      params.add(expression());
+      while (match(TokenType.COMMA)) params.add(expression());
+    }
+    consume(TokenType.RIGHT_PAREN, "Expect ')' after arguments.");
+    return new Stmt.DamAlg(kind.lexeme, params);
+  }
+
+  private Stmt levelStmt() {
+    Token name = consume(TokenType.IDENTIFIER, "Expect dam name after 'level'.");
+    consume(TokenType.EQUAL, "Expect '=' after dam name.");
+    Expr value = expression();
+    consume(TokenType.SEMICOLON, "Expect ';' after level statement.");
+    return new Stmt.Level(name, value);
+  }
+
 
 
   private Stmt letDecl() {

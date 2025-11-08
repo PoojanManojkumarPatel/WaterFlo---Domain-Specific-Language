@@ -1,5 +1,9 @@
 let rain_today = rain(50mm);
-dam d1 = 0.8;
+
+dam d1 = 0.8;           // implicit reduce
+dam d2 = reduce(0.6);   // explicit reduce
 
 rain_today -> d1;
-output d1;
+d1 -> d2;
+
+output d2;  // expect 24 (50 * 0.8 * 0.6)

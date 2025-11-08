@@ -10,11 +10,18 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     
     // --- Node graph ---
     private enum Kind { RIVER, DAM }
+    private enum DamType { REDUCE, CAP, BOOST, THRESHOLD }
 
     private static class Node {
     Kind kind = Kind.RIVER;
-    double factor = 1.0;           // only used for dams
-    Double base = null;            // from let name = <value>; (null means 0)
+    // Base source value (from let name = expr;)
+    Double base = null;
+
+    // Dam config
+    DamType damType = DamType.REDUCE;
+    double factor = 1.0;          // used for reduce; default
+    double[] damParams = new double[0];
+    Double level = null;          // set by 'level d = value;'
     }
 
     private final Map<String, Node> nodes = new HashMap<>();
@@ -30,6 +37,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     ensureNode(from);
     ensureNode(to);
     }
+
 
 
     void interpret(List<Stmt> statements) {
@@ -100,7 +108,7 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     public Void visitRiverStmt(Stmt.River stmt) {
     Node n = ensureNode(stmt.name.lexeme);
     n.kind = Kind.RIVER;
-    // optional: you can store length if you want (stmt.length), but it doesn't affect flow
+    // optional: you may ignore stmt.length at runtime
     return null;
     }
 
@@ -108,11 +116,42 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     public Void visitDamStmt(Stmt.Dam stmt) {
     Node n = ensureNode(stmt.name.lexeme);
     n.kind = Kind.DAM;
-    // parse factor if provided, else default 1.0
-    if (stmt.factor != null) {
-        Object v = evaluate(stmt.factor);
-        if (v instanceof Double d) n.factor = d;
+
+    if (stmt.alg == null) {
+        // 'dam d;' → default reduce(1.0)
+        n.damType = DamType.REDUCE;
+        n.factor  = 1.0;
+        n.damParams = new double[]{1.0};
+        return null;
     }
+
+    // Evaluate params
+    java.util.List<Expr> ps = stmt.alg.params;
+    double[] vals = new double[ps.size()];
+    for (int i = 0; i < ps.size(); i++) {
+        Object v = evaluate(ps.get(i));
+        vals[i] = (v instanceof Double d) ? d : 0.0;
+    }
+    n.damParams = vals;
+
+    // Resolve kind
+    String k = stmt.alg.kind;
+    switch (k) {
+        case "number":   // implicit reduce(NUMBER)
+        case "reduce":   n.damType = DamType.REDUCE; n.factor = vals.length>0? vals[0]:1.0; break;
+        case "cap":      n.damType = DamType.CAP;                                      break;
+        case "boost":    n.damType = DamType.BOOST;                                    break;
+        case "threshold":n.damType = DamType.THRESHOLD;                                break;
+        default:         n.damType = DamType.REDUCE; n.factor = 1.0;                   break;
+    }
+    return null;
+    }
+
+    @Override
+    public Void visitLevelStmt(Stmt.Level stmt) {
+    Node n = ensureNode(stmt.name.lexeme);
+    Object v = evaluate(stmt.value);
+    n.level = (v instanceof Double d) ? d : 0.0;
     return null;
     }
 
@@ -120,70 +159,102 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     public Void visitLetStmt(Stmt.Let stmt) {
     Object value = evaluate(stmt.value);
     environment.define(stmt.name.lexeme, value);
-    // treat let-name as a source node too
+
     Node n = ensureNode(stmt.name.lexeme);
-    n.kind = Kind.RIVER; // generic source/pass-through
+    n.kind = Kind.RIVER;                 // treat lets as sources/pass-through nodes
     n.base = (value instanceof Double d) ? d : 0.0;
     return null;
     }
 
     @Override
     public Void visitDrainStmt(Stmt.Drain stmt) {
-    String from = stmt.from.lexeme;
-    String to   = stmt.to.lexeme;
-    addEdge(from, to);
+    addEdge(stmt.from.lexeme, stmt.to.lexeme);
     return null;
     }
 
     @Override
     public Void visitOutputStmt(Stmt.Output stmt) {
     String name = stmt.name.lexeme;
-    double flow = computeFlow(name, new HashMap<>()); // memo map
+    double flow = computeFlow(name, new HashMap<>());
     System.out.println(name + " = " + stringify(flow));
     return null;
     }
+    
+
 
     //---------- helper methods ----------
 
-	// nice formatting
-	private String stringify(Object v) {
-	    if (v == null) return "nil";
-	    if (v instanceof Double d) {
-	        if (d == Math.rint(d)) return String.valueOf(d.longValue()); // show 30 not 30.0
-	    }
-	    return v.toString();
-	}
-
     private double computeFlow(String name, Map<String, Double> memo) {
-    if (memo.containsKey(name)) return memo.get(name);
+        if (memo.containsKey(name)) return memo.get(name);
+        Node n = ensureNode(name);
 
-    Node n = ensureNode(name);
+        double base = (n.base != null) ? n.base : 0.0;
 
-    // base value (from let) or 0
-    double base = (n.base != null) ? n.base : 0.0;
+        double inflow = 0.0;
+        for (String p : preds.getOrDefault(name, java.util.Collections.emptyList())) {
+            inflow += computeOutflow(p, memo);
+        }
+        double totalIn = base + inflow;
 
-    // sum of outflows from predecessors
-    double inflow = 0.0;
-    List<String> ps = preds.getOrDefault(name, Collections.emptyList());
-    for (String p : ps) {
-        inflow += computeOutflow(p, memo); // compute predecessor's outflow
-    }
+        double out;
+        if (n.kind == Kind.DAM) {
+            switch (n.damType) {
+            case REDUCE: {
+                double f = (n.damParams.length > 0) ? n.damParams[0] : n.factor;
+                out = totalIn * f;
+                break;
+            }
+            case CAP: {
+                double max = (n.damParams.length > 0) ? n.damParams[0] : Double.POSITIVE_INFINITY;
+                out = Math.min(totalIn, max);
+                break;
+            }
+            case BOOST: {
+                double k = (n.damParams.length > 0) ? n.damParams[0] : 0.0;
+                double rainToday = currentRain();
+                out = totalIn + k * rainToday;
+                break;
+            }
+            case THRESHOLD: {
+                double th   = (n.damParams.length > 0) ? n.damParams[0] : 0.0;
+                double low  = (n.damParams.length > 1) ? n.damParams[1] : 0.0;
+                double high = (n.damParams.length > 2) ? n.damParams[2] : 1.0;
+                double lvl  = (n.level != null) ? n.level : 0.0;
+                out = (lvl < th) ? totalIn * low : totalIn * high;
+                break;
+            }
+            default:
+                out = totalIn;
+            }
+        } else {
+            out = totalIn; // rivers/lets pass through
+        }
 
-    double totalIn = base + inflow;
-    double out = (n.kind == Kind.DAM) ? totalIn * n.factor : totalIn;
-
-    // NOTE: for computeFlow(name) we want the value *at* this node.
-    // For printing the "flow at node", use out (its outflow). That’s our convention here.
-    memo.put(name, out);
-    return out;
+        memo.put(name, out);
+        return out;
     }
 
     private double computeOutflow(String name, Map<String, Double> memo) {
-    // Here outflow of a node is the memoised computeFlow(node)
-    return computeFlow(name, memo);
+        return computeFlow(name, memo);
+    }
+
+    private double currentRain() {
+        try {
+            Object v = environment.get("rain_today");
+            if (v instanceof Double d) return d;
+        } catch (RuntimeException ignored) {}
+        return 1.0; // default if user didn't define rain_today
+    }
+
+    private String stringify(Object v) {
+        if (v == null) return "nil";
+        if (v instanceof Double d) {
+            if (d == Math.rint(d)) return String.valueOf(d.longValue());
+            return d.toString();
+        }
+        return v.toString();
     }
 }
-
 
 
 class Environment {

@@ -1,8 +1,9 @@
-river r1;
-dam d1 = 0.75;
+let inflow = 100;
+dam t = threshold(50, 0.3, 0.9);
+level t = 40;       // below threshold → low=0.3
 
-let base = 12;
-base -> r1;
-r1 -> d1;
+inflow -> t;
+output t;           // expect 30
 
-output d1;
+level t = 60;       // now above → high=0.9
+output t;           // expect 90 (overwrites previous level)

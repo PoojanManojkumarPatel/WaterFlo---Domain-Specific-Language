@@ -1,5 +1,6 @@
 package com.waterflo;
 
+import com.waterflo.Stmt.Level;
 import java.util.List;
 
 public class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<Void> {
@@ -100,4 +101,10 @@ public class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<Void> {
   }
 
   private String indent(int n) { return "  ".repeat(Math.max(0, n)); }
+
+  @Override
+  public Void visitLevelStmt(Level stmt) {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'visitLevelStmt'");
+  }
 }

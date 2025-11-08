@@ -15,6 +15,7 @@ class Scanner {
     keywords.put("output", TokenType.OUTPUT);
     keywords.put("rain", TokenType.RAIN);
     keywords.put("mm", TokenType.MM);
+    keywords.put("level", TokenType.LEVEL);
   }
 
   private int start = 0;
@@ -40,6 +41,7 @@ class Scanner {
       case ';': addToken(TokenType.SEMICOLON); break;
       case '(': addToken(TokenType.LEFT_PAREN); break;
       case ')': addToken(TokenType.RIGHT_PAREN); break;
+      case ',': addToken(TokenType.COMMA); break;
       case '-':
         if (match('>')) addToken(TokenType.ARROW);
         break;

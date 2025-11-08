@@ -1,10 +1,10 @@
-let a = 10;
-let b = 20;
-dam d1 = 0.5;
-dam d2 = 0.9;
+let rain_today = rain(20mm);
+let base = 30;
 
-a -> d1;
-b -> d1;
-d1 -> d2;
+dam c = cap(40);
+dam b = boost(0.5);
 
-output d2;
+base -> c;
+c -> b;
+
+output b;  // expect 40 (cap keeps 30, boost adds 0.5*20=10 → 40)
