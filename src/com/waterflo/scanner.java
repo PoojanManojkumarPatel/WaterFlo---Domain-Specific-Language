@@ -16,6 +16,7 @@ class Scanner {
     keywords.put("rain", TokenType.RAIN);
     keywords.put("mm", TokenType.MM);
     keywords.put("level", TokenType.LEVEL);
+    keywords.put("days", TokenType.DAYS);
   }
 
   private int start = 0;

@@ -1,0 +1,48 @@
+// Example 4: Full system demo with all dam types
+
+days 3;                                  // 3 days of identical conditions
+
+// Base rainfall
+let rain_today = rain(40mm);             // 40 units / day
+
+// Base sources
+let farm_flow = 15;
+let city_flow = 25;
+
+// Rivers
+river upper;
+river mid;
+river lower;
+
+// Dams with different algorithms
+dam r1 = reduce(0.7);                    // passes 70% of inflow
+dam c1 = cap(50);                        // max 50
+dam b1 = boost(0.25);                    // adds 0.25 * rain_today
+dam t1 = threshold(60, 0.4, 0.85);       // if level < 60 → 0.4, else 0.85
+
+// Set dam level (try changing this between runs)
+level t1 = 55;                           // below 60 → low factor (0.4)
+
+// Topology:
+// farm_flow + rain_today → upper
+farm_flow   -> upper;
+rain_today  -> upper;
+
+// upper → r1 (reduce)
+// city_flow → mid
+upper -> r1;
+city_flow -> mid;
+
+// r1 + mid → c1 (cap)
+r1 -> c1;
+mid -> c1;
+
+// c1 → b1 (boost from rain)
+// b1 → t1 (threshold dam)
+// t1 → lower (final river)
+c1  -> b1;
+b1  -> t1;
+t1  -> lower;
+
+// Final system output
+output lower;

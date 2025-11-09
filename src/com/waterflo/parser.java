@@ -29,6 +29,8 @@ class Parser {
     if (match(TokenType.OUTPUT)) return outputStmt();
     if (match(TokenType.LEVEL)) return levelStmt();
     if (check(TokenType.IDENTIFIER) && checkNext(TokenType.ARROW)) return drainStmt();
+    if (match(TokenType.DAYS)) return daysStmt();
+
 
     throw error(peek(), "Unexpected statement.");
   }
@@ -106,6 +108,13 @@ class Parser {
     consume(TokenType.SEMICOLON, "Expect ';' after output statement.");
     return new Stmt.Output(name);
   }
+
+  private Stmt daysStmt() {
+    Expr value = expression();  // allows 'days 5;' or 'days 2 + 3;'
+    consume(TokenType.SEMICOLON, "Expect ';' after days value.");
+    return new Stmt.Days(value);
+  }
+
 
   // --------------------
   // Expressions

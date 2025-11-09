@@ -11,7 +11,7 @@ enum TokenType {
   IDENTIFIER, NUMBER,
 
   // Keywords
-  RIVER, DAM, LET, OUTPUT, RAIN, MM, LEVEL,
+  RIVER, DAM, LET, OUTPUT, RAIN, MM, LEVEL, DAYS,
 
   // Other
   EOF

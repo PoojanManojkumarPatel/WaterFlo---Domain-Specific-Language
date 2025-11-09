@@ -1,5 +1,6 @@
 package com.waterflo;
 
+import com.waterflo.Stmt.Days;
 import com.waterflo.Stmt.Level;
 import java.util.List;
 
@@ -106,5 +107,11 @@ public class AstPrinter implements Expr.Visitor<String>, Stmt.Visitor<Void> {
   public Void visitLevelStmt(Level stmt) {
     // TODO Auto-generated method stub
     throw new UnsupportedOperationException("Unimplemented method 'visitLevelStmt'");
+  }
+
+  @Override
+  public Void visitDaysStmt(Days stmt) {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'visitDaysStmt'");
   }
 }

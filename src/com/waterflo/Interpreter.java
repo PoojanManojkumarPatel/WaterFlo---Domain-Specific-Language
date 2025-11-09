@@ -6,6 +6,7 @@ import java.util.*;
 class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
     private final Environment environment = new Environment();
+    private int days = 1; // default: single-day simulation
 
     
     // --- Node graph ---
@@ -167,6 +168,20 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     }
 
     @Override
+    public Void visitDaysStmt(Stmt.Days stmt) {
+        Object v = evaluate(stmt.value);
+        if (v instanceof Double d) {
+            int n = (int) Math.round(d);
+            if (n < 1) n = 1;
+            days = n;
+        } else {
+            days = 1;
+        }
+        return null;
+    }
+
+
+    @Override
     public Void visitDrainStmt(Stmt.Drain stmt) {
     addEdge(stmt.from.lexeme, stmt.to.lexeme);
     return null;
@@ -174,11 +189,48 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
     @Override
     public Void visitOutputStmt(Stmt.Output stmt) {
-    String name = stmt.name.lexeme;
-    double flow = computeFlow(name, new HashMap<>());
-    System.out.println(name + " = " + stringify(flow));
-    return null;
+        String outName = stmt.name.lexeme;
+
+        // 1. Compute all flows (per day)
+        Map<String, Double> memo = new HashMap<>();
+        double mainOut = computeFlow(outName, memo);
+
+        System.out.println("=== Flow Paths to " + outName + " (per day) ===");
+
+        // 2. Collect all source→output paths
+        List<List<String>> paths = new ArrayList<>();
+        Deque<String> current = new ArrayDeque<>();
+        collectPaths(outName, current, paths);
+
+        if (paths.isEmpty()) {
+            System.out.println("(no upstream paths; " + outName + " is isolated)");
+        } else {
+            // 3. Print each path like a linked list: a(flow) -> b(flow) -> c(flow)
+            for (List<String> path : paths) {
+                // path is already from source → output
+                StringBuilder sb = new StringBuilder();
+                for (int i = 0; i < path.size(); i++) {
+                    String name = path.get(i);
+                    Double val = memo.get(name);
+                    if (val == null) val = 0.0;
+                    if (i > 0) sb.append(" -> ");
+                    sb.append(name).append("(").append(stringify(val)).append(")");
+                }
+                System.out.println(sb.toString());
+            }
+        }
+
+        System.out.println("----------------------------");
+        System.out.println("System Output (" + outName + ") per day = " + stringify(mainOut));
+        if (days > 1) {
+            double total = mainOut * days;
+            System.out.println("For " + days + " days total = " + stringify(total));
+        }
+        System.out.println("============================\n");
+
+        return null;
     }
+
     
 
 
@@ -254,6 +306,29 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         }
         return v.toString();
     }
+
+    // Collect all paths from sources to 'node'.
+    // We walk backward (via preds), then reverse the path so it prints source -> ... -> node.
+    private void collectPaths(String node,
+                            Deque<String> current,
+                            List<List<String>> paths) {
+        current.addLast(node);
+        List<String> ps = preds.getOrDefault(node, java.util.Collections.emptyList());
+
+        if (ps.isEmpty()) {
+            // reached a source (no predecessors)
+            List<String> path = new ArrayList<>(current);
+            java.util.Collections.reverse(path);   // now source → ... → output
+            paths.add(path);
+        } else {
+            for (String p : ps) {
+                collectPaths(p, current, paths);
+            }
+        }
+
+        current.removeLast();
+    }
+
 }
 
 

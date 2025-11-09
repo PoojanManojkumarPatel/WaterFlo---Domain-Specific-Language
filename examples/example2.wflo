@@ -1,10 +1,12 @@
-let rain_today = rain(20mm);
-let base = 30;
+// Example 2: base inflow capped, then boosted by rainfall
 
-dam c = cap(40);
-dam b = boost(0.5);
+let rain_today = rain(20mm);   // 20 units of rain
+let base = 30;                 // base inflow from some upstream system
+
+dam c = cap(40);               // c will never output more than 40
+dam b = boost(0.5);            // b adds 0.5 * rain_today to its inflow
 
 base -> c;
 c -> b;
 
-output b;  // expect 40 (cap keeps 30, boost adds 0.5*20=10 → 40)
+output b;

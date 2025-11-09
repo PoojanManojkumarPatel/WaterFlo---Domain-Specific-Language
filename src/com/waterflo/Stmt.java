@@ -8,10 +8,11 @@ abstract class Stmt {
     R visitDrainStmt(Drain stmt);
     R visitOutputStmt(Output stmt);
     R visitLevelStmt(Level stmt);
+    R visitDaysStmt(Days stmt);
 
   }
 
-    static class DamAlg {
+  static class DamAlg {
     final String kind;                 // "number" | "reduce" | "cap" | "boost" | "threshold"
     final java.util.List<Expr> params; // expressions for parameters
     DamAlg(String kind, java.util.List<Expr> params) {
@@ -34,6 +35,19 @@ abstract class Stmt {
       return visitor.visitRiverStmt(this);
     }
   }
+
+  static class Days extends Stmt {
+    final Expr value; // number of days
+
+    Days(Expr value) {
+      this.value = value;
+    }
+
+    <R> R accept(Visitor<R> visitor) {
+      return visitor.visitDaysStmt(this);
+    }
+  }
+
 
   static class Dam extends Stmt {
     final Token name;

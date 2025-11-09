@@ -1,9 +1,9 @@
-let rain_today = rain(50mm);
+// Example 1: simple rainfall through one dam
 
-dam d1 = 0.8;           // implicit reduce
-dam d2 = reduce(0.6);   // explicit reduce
+let rain_today = rain(50mm);   // 50 units of rainfall today
+
+dam d1 = 0.8;                  // implicit reduce: passes 80% of inflow
 
 rain_today -> d1;
-d1 -> d2;
 
-output d2;  // expect 24 (50 * 0.8 * 0.6)
+output d1;                     // per-day flow at d1, and multi-day if 'days' set
