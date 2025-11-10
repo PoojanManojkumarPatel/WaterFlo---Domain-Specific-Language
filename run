@@ -1,0 +1,8 @@
+java -cp out com.waterflo.Main examples/example1.wflo
+java -cp out com.waterflo.Main examples/example2.wflo
+java -cp out com.waterflo.Main examples/example3.wflo
+java -cp out com.waterflo.Main examples/example4.wflo
+java -cp out com.waterflo.Main examples/example5.wflo
+java -cp out com.waterflo.Main examples/example6.wflo
+java -cp out com.waterflo.Main examples/example7.wflo
+java -cp out com.waterflo.Main examples/example8.wflo

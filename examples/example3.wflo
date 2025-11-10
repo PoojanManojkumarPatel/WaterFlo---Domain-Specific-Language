@@ -1,18 +1,7 @@
-// Example 3: threshold dam with levels and multi-day total
-
-days 5;                         // simulate 5 days
-
-let inflow = 100;
-
-// threshold(threshold, lowFactor, highFactor)
-dam t = threshold(50, 0.3, 0.9);
-
-// Below threshold: use low factor (0.3)
-level t = 40;
-
-inflow -> t;
-output t;                       // should reflect low factor and 5-day total
-
-// You can later change level and run again in a separate .wflo program:
-// level t = 60;  // above threshold → 0.9
-// output t;
+dam d1 = 0.8;                  // implicit reduce
+dam d2 = reduce(0.7);          // explicit reduce
+dam d3 = cap(50);              // cap at maximum
+dam d4 = boost(0.25);          // boost inflow by 25% of rain_today
+dam d5 = threshold(50, 0.3, 0.9);  // factor depends on dam level
+level d5 = 40;                 // below threshold
+output d5;

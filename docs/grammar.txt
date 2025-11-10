@@ -1,27 +1,26 @@
-program        -> declaration* EOF ;
+program        → declaration* EOF ;
 
-declaration    -> riverDecl
+declaration    → riverDecl
                | damDecl
+               | levelStmt
                | letDecl
                | drainStmt
-               | outputStmt ;
+               | outputStmt
+               | daysStmt ;
 
-riverDecl → "river" IDENT ( "=" NUMBER )? ";" ;
-damDecl  → "dam" IDENT ( "=" NUMBER )? ";" ;
-letDecl        -> "let" IDENT "=" expression ";" ;
-drainStmt      -> IDENT "->" IDENT ";" ;
-outputStmt     -> "output" IDENT ";" ;
+riverDecl      → "river" IDENT ( "=" NUMBER )? ";" ;
+damDecl        → "dam" IDENT ( "=" damAlg )? ";" ;
+damAlg         → NUMBER
+               | IDENT "(" argList? ")" ;
+argList        → expression ( "," expression )* ;
+levelStmt      → "level" IDENT "=" expression ";" ;
+letDecl        → "let" IDENT "=" expression ";" ;
+drainStmt      → IDENT "->" IDENT ";" ;
+outputStmt     → "output" IDENT ";" ;
+daysStmt       → "days" expression ";" ;
 
-# Expressions: rivers, flows, rainfall
-expression     -> addition ;
-addition       -> primary ( "+" primary )* ;
-primary        -> IDENT
-               | NUMBER
-               | "(" expression ")"
-               | rainLit ;
-
-rainLit        -> "rain" "(" NUMBER "mm" ")" ;
-
-# Comments (ignored by parser)
-comment        -> "//" <any chars until end of line>
-               | "/*" <any chars until "*/">
+expression     → addition ;
+addition       → primary ( "+" primary )* ;
+primary        → IDENT | NUMBER | "(" expression ")" | rainLit ;
+rainLit        → "rain" "(" NUMBER "mm" ")" ;
+comment        → "//" <chars until end> | "/*" <chars until "*/"> ;

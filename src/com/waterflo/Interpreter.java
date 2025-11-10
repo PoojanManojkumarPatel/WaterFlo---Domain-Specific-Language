@@ -42,7 +42,6 @@ class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
 
     void interpret(List<Stmt> statements) {
-    	System.out.println("Interpreter running...");
         try {
             for (Stmt stmt : statements) {
                 execute(stmt);

@@ -1,0 +1,28 @@
+// City vs Country – demonstrates merges and parallel dams
+
+days 3;
+let rain_today = rain(40mm);
+
+let rural_flow = 20;
+let city_flow  = 35;
+
+// Dam types
+dam farm_dam = cap(30);                 // limits irrigation flow
+dam city_dam = boost(0.3);              // adds 0.3 × rain_today
+dam junction = reduce(0.9);             // slight frictional loss
+dam outlet   = threshold(50, 0.5, 0.8); // adaptive outflow
+
+level outlet = 55;                      // above threshold → 0.8
+
+// Network
+rural_flow -> farm_dam;
+city_flow  -> city_dam;
+
+farm_dam -> junction;
+city_dam -> junction;
+
+rain_today -> city_dam;
+
+junction -> outlet;
+
+output outlet;

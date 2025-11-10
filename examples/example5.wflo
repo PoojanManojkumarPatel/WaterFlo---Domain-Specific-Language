@@ -1,30 +1,8 @@
-days 3;
+let rain_today = rain(20mm);
+let inflow = 100;
 
-let rain_today = rain(40mm);
-let farm_flow = 15;
-let city_flow = 25;
+dam d = threshold(50, 0.3, 0.9);
+level d = 60;         // above threshold
 
-river upper;
-river mid;
-river lower;
-
-dam r1 = reduce(0.7);
-dam c1 = cap(50);
-dam b1 = boost(0.25);
-dam t1 = threshold(60, 0.4, 0.85);
-level t1 = 55;  // below threshold → 0.4
-
-farm_flow  -> upper;
-rain_today -> upper;
-
-upper     -> r1;
-city_flow -> mid;
-
-r1  -> c1;
-mid -> c1;
-
-c1  -> b1;
-b1  -> t1;
-t1  -> lower;
-
-output lower;
+inflow -> d;
+output d;

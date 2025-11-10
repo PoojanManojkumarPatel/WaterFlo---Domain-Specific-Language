@@ -1,0 +1,27 @@
+// Extreme Weather Scenario – full feature showcase
+
+days 2;
+
+let rain_today = rain(60mm);
+let runoff = rain(20mm);
+let ground_water = 10;
+
+// Multiple control dams
+dam intake   = reduce(0.75);
+dam buffer   = boost(0.4);
+dam safety   = cap(100);
+dam spillway = threshold(70, 0.5, 0.95);
+
+// Level dynamically below threshold
+level spillway = 60;
+
+// Topology
+rain_today -> intake;
+runoff     -> intake;
+ground_water -> intake;
+
+intake -> buffer;
+buffer -> safety;
+safety -> spillway;
+
+output spillway;

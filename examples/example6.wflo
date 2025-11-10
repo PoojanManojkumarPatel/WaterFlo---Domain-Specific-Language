@@ -1,0 +1,21 @@
+// Adaptive Dam Network – combines rainfall, thresholds and day totals
+
+days 4;                                // Simulate over 4 days
+
+let rain_today = rain(30mm);           // Base rainfall input (30 units)
+let mountain_flow = 50;                // Constant mountain inflow
+
+// Dams with different algorithms
+dam upper = reduce(0.6);               // passes 60 % of inflow
+dam mid   = boost(0.2);                // adds 0.2 × rain_today
+dam lower = threshold(45, 0.4, 0.9);   // depends on dam level
+
+level lower = 40;                      // Below 45 → use 0.4 factor
+
+// River topology
+mountain_flow -> upper;
+rain_today     -> upper;
+upper          -> mid;
+mid            -> lower;
+
+output lower;
