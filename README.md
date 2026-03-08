@@ -18,5 +18,7 @@ output d1;
 Output:
 
 rain_today(50) -> d1(40)
+
 System Output (d1) per day = 40
+
 For 5 days total = 200
